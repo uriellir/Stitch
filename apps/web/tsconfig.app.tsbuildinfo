@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/router.tsx","./src/components/clothingcard.tsx","./src/components/imagewithfallback.tsx","./src/components/screens/home.tsx","./src/components/screens/layout.tsx","./src/data/mockdata.ts"],"version":"5.9.3"}

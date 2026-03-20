@@ -1,3 +1,39 @@
+# Stitch
+
+Stitch is a digital wardrobe and outfit recommendation application.
+
+The goal of the project is to allow users to upload their clothing items, organize their wardrobe, and receive outfit recommendations based on preferences, context, and feedback.
+
+---
+
+# Architecture Overview
+
+The project uses a monorepo architecture to keep frontend, backend, and shared logic in a single repository.
+
+The repository is organized into applications and shared packages.
+
+- **apps** – runnable applications
+- **packages** – shared libraries
+- **docs** – project documentation
+
+---
+
+# Repository Structure
+
+Stitch
+│
+├── apps
+│ ├── web # React frontend (Vite + TypeScript)
+│ └── api # Backend API (future)
+│
+├── packages
+│ └── shared # Shared types and utilities
+│
+├── docs # Documentation
+│
+├── README.md
+└── package.json
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
