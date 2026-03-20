@@ -15,6 +15,15 @@ export interface Outfit {
   createdAt: string;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  description?: string;
+  itemIds: string[];
+  color?: string;
+  createdAt: string;
+}
+
 export const mockItems: ClothingItem[] = [
   {
     id: "1",
@@ -81,4 +90,39 @@ export const mockOutfits: Outfit[] = [
     items: [mockItems[3], mockItems[5]],
     createdAt: "2024-03-17"
   }
+];
+
+export const mockCollections: Collection[] = [
+  {
+    id: '1',
+    name: 'Work Essentials',
+    description: 'Professional pieces for the office',
+    itemIds: ['5', '6', '4'],
+    color: '#0a0a0a',
+    createdAt: '2026-03-01',
+  },
+  {
+    id: '2',
+    name: 'Weekend Casual',
+    description: 'Comfortable everyday wear',
+    itemIds: ['1', '2', '3'],
+    color: '#3b82f6',
+    createdAt: '2026-03-05',
+  },
+  {
+    id: '3',
+    name: 'Date Night',
+    description: 'Evening and special occasion outfits',
+    itemIds: ['4', '6'],
+    color: '#ec4899',
+    createdAt: '2026-03-10',
+  },
+  {
+    id: '4',
+    name: 'Favorites',
+    description: 'My most-worn items',
+    itemIds: ['1', '2', '4'],
+    color: '#f59e0b',
+    createdAt: '2026-03-12',
+  },
 ];
