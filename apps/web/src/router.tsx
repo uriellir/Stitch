@@ -13,38 +13,14 @@ export const router = createBrowserRouter([
         path: "/",
         element: <Layout />,
         children: [
-            {
-                index: true,
-                element: <Home />
-            },
-            {
-                path: "closet",
-                element: <Closet />
-            },
-            {
-                path: "collections",
-                element: <Collections />
-            },
-            {
-                path: "/collections/create",
-                Component: CreateCollection,
-            },
-            {
-                path: "/collections/:id",
-                Component: CollectionDetails,
-            },
-            {
-                path: "/collections/:id/edit",
-                Component: CreateCollection,
-            },
-            {
-                path: "/collections/:id/add-items",
-                Component: AddItemsToCollection,
-            },
-            {
-                path: "/add-item",
-                Component: AddItem,
-            },
+            { index: true, Component: Home },
+            { path: "closet", Component: Closet },
+            { path: "collections", Component: Collections },
+            { path: "collections/create", Component: CreateCollection },
+            { path: "collections/:id", Component: CollectionDetails},
+            { path: "collections/:id/edit", Component: CreateCollection },
+            { path: "collections/:id/add-items", Component: AddItemsToCollection },
+            { path: "add-item", Component: AddItem },
         ]
     }
 ]);

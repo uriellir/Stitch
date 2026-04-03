@@ -3,7 +3,7 @@ import { Camera, Upload, X } from "lucide-react";
 import { Header } from "../Header";
 import { Button } from "../../components/Button";
 import { Chip } from "../../components/Chip";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const categories = ["top", "bottom", "shoes", "outerwear", "accessory", "bag"];
 const colors = ["black", "white", "blue", "red", "green", "beige", "brown", "gray"];
@@ -24,7 +24,27 @@ export function AddItem() {
   };
 
   const handleSave = () => {
-    // Mock save
+    fetch("http://localhost:3001/clothing-items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: itemName,
+        image: "Image", // Image upload not implemented yet
+        category: selectedCategory,
+        colors: selectedColors,
+        // seasons: selectedSeasons, // Seasons upload not implemented yet
+        // styles: selectedStyles, // Styles upload not implemented yet
+        brand: "Unknown", // Brand input not implemented yet;
+        // favorite?: boolean; // Favorite input not implemented yet
+        // notes: selectedNotes, // Notes input not implemented yet
+      }),
+    })
+      .then((res) => res.json())
+          .then((json) => {
+          console.log("Posted clothing item:", json);
+          //navigate("/closet"); // Moved navigate here to ensure it only happens after successful POST
+      })
+      .catch((err) => console.error("Failed to add clothing item:", err));
     navigate("/closet");
   };
 

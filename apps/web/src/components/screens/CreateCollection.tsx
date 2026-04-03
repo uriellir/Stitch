@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../Header";
-import { Button } from "../../components/Button"; //TODO: Is it used in the bottom?
 import { mockCollections } from "../../data/mockData";
 
 const colorOptions = [

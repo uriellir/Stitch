@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { Search, Check } from "lucide-react";
 import { Header } from "../../components/Header";
 import { ClothingCard } from "../../components/ClothingCard";

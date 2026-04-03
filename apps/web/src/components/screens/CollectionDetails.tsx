@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, MoreVertical } from "lucide-react";
 import { Header } from "../../components/Header";
 import { BottomNav } from "../../components/BottomNav";

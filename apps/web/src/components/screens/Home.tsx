@@ -1,12 +1,48 @@
 import { Plus, Sparkles, Shuffle, Image as ImageIcon, Cloud } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { ClothingCard } from "../ClothingCard";
-import { mockItems, mockOutfits } from "../../data/mockData";
+// import { mockItems, mockOutfits } from "../../data/mockData";
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+
+type HomeResponse = {
+  todayOutfit: null;
+  recentItems: Array<{
+    id: string;
+    name: string;
+    image: string;
+    category: string;
+    colors: string[];
+    brand: string;
+    favorite: boolean;
+  }>;
+  quickStats: {
+    totalItems: number;
+    favorites: number;
+  };
+  quickActions: Array<{
+    id: string;
+    label: string;
+  }>;
+};
 
 export function Home() {
   const navigate = useNavigate();
-  const todayOutfit = mockOutfits[0];
+  const [data, setData] = useState<HomeResponse | null>(null);
+  // const todayOutfit = mockOutfits[0];
+  const todayOutfit = data?.todayOutfit || {
+    id: "outfit1",
+    name: "Today's Outfit",
+    items: data?.recentItems.slice(0, 3) || [],
+  };
+
+
+  useEffect(() => {
+    fetch("http://localhost:3001/home")
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Failed to fetch home data:", err));
+  }, []);
 
   return (
     <div className="bg-background pb-20">
@@ -118,7 +154,8 @@ export function Home() {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {mockItems.slice(0, 6).map((item) => (
+            {/* {mockItems.slice(0, 6).map((item) => ( */}
+            {data?.recentItems.slice(0, 6).map((item) => (
               <ClothingCard
                 key={item.id}
                 item={item}

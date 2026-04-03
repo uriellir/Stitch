@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { Header } from "../Header";
 import { BottomNav } from "../BottomNav";
 import { CollectionCard } from "../CollectionCard";

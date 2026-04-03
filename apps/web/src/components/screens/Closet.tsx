@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, Plus, Folder, ArrowUp } from "lucide-react";
 import { ClothingCard } from "../ClothingCard";
-import { mockItems } from "../../data/mockData";
-import { useNavigate } from "react-router";
+import { ClothingItem, mockItems } from "../../data/mockData";
+import { useNavigate } from "react-router-dom";
+import { ClothingCardSkeleton } from "../ClothingCardSkeleton";
 
 const categories = ["All", "Tops", "Bottoms", "Shoes", "Outerwear", "Accessories"];
 
@@ -10,7 +11,19 @@ export function Closet() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [clothingItems, setClothingItems] = useState<ClothingItem[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const navigate = useNavigate();
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3800);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +38,18 @@ export function Closet() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const filteredItems = mockItems.filter((item) => {
+  useEffect(() => {
+    fetch("http://localhost:3001/clothing-items")
+      .then((res) => res.json())
+      .then((json) => {
+        setClothingItems(json);
+        console.log("Fetched clothing items:", json);
+      })
+      .catch((err) => console.error("Failed to fetch clothing items:", err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredItems = clothingItems?.filter((item) => {
     const matchesCategory =
       selectedCategory === "All" ||
       item.category.toLowerCase() === selectedCategory.toLowerCase() ||
@@ -107,10 +131,17 @@ export function Closet() {
         {/* Items Grid */}
         <div className="px-6 pb-6">
           <p className="text-sm text-muted-foreground mb-3">
-            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
+            {filteredItems?.length} {filteredItems?.length === 1 ? "item" : "items"}
           </p>
 
-          {filteredItems.length === 0 ? (
+          { isLoading ? (
+            <div className="grid grid-cols-2 gap-4">
+              <ClothingCardSkeleton />
+              <ClothingCardSkeleton />
+              <ClothingCardSkeleton />
+              <ClothingCardSkeleton />
+            </div>
+          ) : filteredItems?.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
@@ -122,7 +153,7 @@ export function Closet() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {filteredItems.map((item) => (
+              {filteredItems?.map((item) => (
                 <ClothingCard
                   key={item.id}
                   item={item}
