@@ -1,4 +1,4 @@
-import { Collection, mockItems } from "../data/mockData";
+import { Collection } from "../types/models";
 import { ImageWithFallback } from "./ImageWithFallback";
 
 interface CollectionCardProps {
@@ -7,7 +7,7 @@ interface CollectionCardProps {
 }
 
 export function CollectionCard({ collection, onClick }: CollectionCardProps) {
-  const items = mockItems.filter(item => collection.itemIds.includes(item.id));
+  const items = collection.items || [];
   const previewItems = items.slice(0, 3);
   const remainingCount = Math.max(0, items.length - 3);
 
@@ -45,13 +45,14 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
-            {previewItems.slice(0, 3).map((item, idx) => (
+          <div className="grid grid-cols-2 gap-2 h-full">
+            {previewItems.map((item, idx) => (
               <div
                 key={item.id}
                 className={`rounded-xl overflow-hidden bg-muted ${
-                  idx === 0 ? "row-span-2" : ""
+                  idx === 2 ? "col-span-2" : ""
                 }`}
+                style={idx === 2 ? { height: "48px" } : {}}
               >
                 <ImageWithFallback
                   src={item.image}
@@ -61,8 +62,8 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
               </div>
             ))}
             {remainingCount > 0 && (
-              <div className="rounded-xl bg-foreground/90 flex items-center justify-center">
-                <span className="text-background">+{remainingCount}</span>
+              <div className="absolute bottom-2 right-2 bg-white/80 rounded-full px-3 py-1 text-xs text-muted-foreground">
+                +{remainingCount} more
               </div>
             )}
           </div>
@@ -81,10 +82,21 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
 
       {/* Collection Info */}
       <div className="p-4">
-        <h3 className="text-foreground truncate mb-1">{collection.name}</h3>
-        <p className="text-sm text-muted-foreground">
-          {items.length} {items.length === 1 ? "item" : "items"}
-        </p>
+        <h3 className="text-lg font-semibold text-foreground mb-1 truncate">{collection.name}</h3>
+        {collection.description && (
+          <p className="text-xs text-muted-foreground mb-2 truncate">{collection.description}</p>
+        )}
+        <div className="flex items-center gap-2">
+          {collection.color && (
+            <span
+              className="inline-block w-3 h-3 rounded-full border border-border"
+              style={{ backgroundColor: collection.color }}
+            />
+          )}
+          <span className="text-xs text-muted-foreground">
+            {items.length} {items.length === 1 ? "item" : "items"}
+          </span>
+        </div>
       </div>
     </div>
   );

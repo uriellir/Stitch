@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../Header";
 import { mockCollections } from "../../data/mockData";
+import { ClothingCard } from "../ClothingCard";
 
 const colorOptions = [
   { name: "Black", value: "#0a0a0a" },
@@ -30,6 +31,21 @@ export function CreateCollection() {
   const [selectedColor, setSelectedColor] = useState(
     existingCollection?.color || colorOptions[0].value
   );
+  const [items, setItems] = useState([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/clothing-items")
+      .then((res) => res.json())
+      .then((json) => setItems(json))
+      .catch((err) => console.error("Failed to fetch clothing items:", err));
+  }, []);
+
+  const toggleItem = (id: number) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -37,14 +53,20 @@ export function CreateCollection() {
       return;
     }
 
-    // In a real app, this would save to the backend
-    console.log("Saving collection:", { name, description, color: selectedColor });
-    
-    if (isEditing) {
-      navigate(`/collections/${id}`);
-    } else {
-      navigate("/collections");
-    }
+    // Save to backend
+    fetch("http://localhost:3001/collections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        description,
+        color: selectedColor,
+        itemIds: selectedItemIds,
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => navigate("/collections"))
+      .catch((err) => alert("Failed to create collection: " + err));
   };
 
   return (
@@ -125,6 +147,22 @@ export function CreateCollection() {
                     </div>
                   )}
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Item Selection */}
+          <div>
+            <label className="block text-sm text-foreground mb-3">Select Items</label>
+            <div className="grid grid-cols-3 gap-3">
+              {items.map((item: any) => (
+                <div
+                  key={item.id}
+                  className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all ${selectedItemIds.includes(item.id) ? "border-primary" : "border-transparent"}`}
+                  onClick={() => toggleItem(item.id)}
+                >
+                  <ClothingCard item={item} compact showFavorite={false} />
+                </div>
               ))}
             </div>
           </div>

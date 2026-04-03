@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, Plus, Folder, ArrowUp } from "lucide-react";
 import { ClothingCard } from "../ClothingCard";
-import { ClothingItem, mockItems } from "../../data/mockData";
 import { useNavigate } from "react-router-dom";
 import { ClothingCardSkeleton } from "../ClothingCardSkeleton";
+import { ClothingItem } from "../../types/models";
 
 const categories = ["All", "Tops", "Bottoms", "Shoes", "Outerwear", "Accessories"];
 

@@ -100,3 +100,41 @@ app.get("/home", async (_req, res) => {
     res.status(500).json({ error: "Failed to fetch home data" })
   }
 })
+
+// Get all collections
+app.get("/collections", async (_req, res) => {
+  try {
+    const collections = await prisma.collection.findMany({
+      include: { items: true },
+    });
+    res.json(collections);
+  } catch (error) {
+    console.error("GET /collections failed:", error);
+    res.status(500).json({ error: "Failed to fetch collections" });
+  }
+});
+
+// Create a new collection
+app.post("/collections", async (req, res) => {
+  try {
+    const { name, description, color, itemIds } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+    const collection = await prisma.collection.create({
+      data: {
+        name,
+        description,
+        color,
+        items: itemIds && itemIds.length > 0 ? {
+          connect: itemIds.map((id: number) => ({ id }))
+        } : undefined,
+      },
+      include: { items: true },
+    });
+    res.status(201).json(collection);
+  } catch (error) {
+    console.error("POST /collections failed:", error);
+    res.status(500).json({ error: "Failed to create collection" });
+  }
+})

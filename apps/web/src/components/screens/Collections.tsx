@@ -1,16 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../Header";
 import { BottomNav } from "../BottomNav";
 import { CollectionCard } from "../CollectionCard";
-import { mockCollections } from "../../data/mockData";
+import { Collection } from "../../types/models";
 
 export function Collections() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [collections, setCollections] = useState<Collection[]>([]);
 
-  const filteredCollections = mockCollections.filter((collection) =>
+  useEffect(() => {
+    fetch("http://localhost:3001/collections")
+      .then((res) => res.json())
+      .then((json) => setCollections(json))
+      .catch((err) => console.error("Failed to fetch collections:", err));
+  }, []);
+
+  const filteredCollections = collections.filter((collection) =>
     collection.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

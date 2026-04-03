@@ -21,4 +21,14 @@ model ClothingItem {
   brand    String
   favorite Boolean  @default(false)
   id       Int      @id @default(autoincrement())
+  collections Collection[] @relation("CollectionItems")
+}
+
+model Collection {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  items       ClothingItem[] @relation("CollectionItems")
 }
