@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 type HomeResponse = {
   todayOutfit: null;
   recentItems: Array<{
-    id: string;
+    id: number;
     name: string;
     image: string;
     category: string;
@@ -79,7 +79,10 @@ export function Home() {
               ))}
             </div>
             <button
-              onClick={() => navigate("/outfit/result")}
+              onClick={() => {
+                localStorage.setItem("outfitResult", JSON.stringify(todayOutfit));
+                navigate("/outfit/result", { state: { outfit: todayOutfit } });
+              }}
               className="mt-4 bg-white text-primary px-4 py-2 rounded-xl text-sm hover:bg-white/90 transition w-full"
             >
               View Full Outfit

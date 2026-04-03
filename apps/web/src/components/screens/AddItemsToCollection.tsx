@@ -26,7 +26,7 @@ export function AddItemsToCollection() {
       const found = collections.find((c: Collection) => c.id === Number(id));
       setCollection(found || null);
       setItems(items);
-      setSelectedItemIds(found ? found.items.map((item) => item.id) : []);
+      setSelectedItemIds(found ? found.items.map((item: ClothingItem) => item.id) : []);
       setLoading(false);
     });
   }, [id]);

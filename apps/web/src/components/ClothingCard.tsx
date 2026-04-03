@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
-import { ClothingItem } from "../data/mockData";
 import { ImageWithFallback } from "./ImageWithFallback";
+import { ClothingItem } from "../types/models";
 
 interface ClothingCardProps {
   item: ClothingItem;
