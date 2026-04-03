@@ -8,6 +8,7 @@ import { AddItem } from "./components/screens/AddItem";
 import { CollectionDetails } from "./components/screens/CollectionDetails";
 
 import { AddItemsToCollection } from "./components/screens/AddItemsToCollection";
+import ItemDetails from "./components/screens/ItemDetails";
 import OutfitResult from "./components/screens/OutfitResult";
 
 export const router = createBrowserRouter([
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
             { path: "collections/:id/add-items", Component: AddItemsToCollection },
             { path: "add-item", Component: AddItem },
             { path: "outfit/result", Component: OutfitResult },
+            { path: "item/:id", Component: ItemDetails },
         ]
     }
 ]);
