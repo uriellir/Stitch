@@ -1,18 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, MoreVertical } from "lucide-react";
 import { Header } from "../../components/Header";
 import { BottomNav } from "../../components/BottomNav";
 import { ClothingCard } from "../../components/ClothingCard";
-import { mockCollections, mockItems } from "../../data/mockData";
+import { Collection } from "../../types/models";
 
 export function CollectionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [collection, setCollection] = useState<Collection | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const collection = mockCollections.find((c) => c.id === id);
-  
+  useEffect(() => {
+    fetch(`http://localhost:3001/collections`)
+      .then((res) => res.json())
+      .then((collections) => {
+        const found = collections.find((c: Collection) => c.id === Number(id));
+        setCollection(found || null);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
   if (!collection) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -29,7 +44,7 @@ export function CollectionDetails() {
     );
   }
 
-  const items = mockItems.filter((item) => collection.itemIds.includes(item.id));
+  const items = collection.items || [];
 
   const handleDelete = () => {
     // In a real app, this would delete the collection

@@ -1,23 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Search, Check } from "lucide-react";
 import { Header } from "../../components/Header";
 import { ClothingCard } from "../../components/ClothingCard";
 import { Chip } from "../../components/Chip";
-import { mockCollections, mockItems } from "../../data/mockData";
+import { Collection, ClothingItem } from "../../types/models";
 
 const categories = ["All", "Tops", "Bottoms", "Shoes", "Outerwear", "Accessories"];
 
 export function AddItemsToCollection() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const collection = mockCollections.find((c) => c.id === id);
-  const [selectedItemIds, setSelectedItemIds] = useState<string[]>(
-    collection?.itemIds || []
-  );
+  const [collection, setCollection] = useState<Collection | null>(null);
+  const [items, setItems] = useState<ClothingItem[]>([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`http://localhost:3001/collections`).then((res) => res.json()),
+      fetch(`http://localhost:3001/clothing-items`).then((res) => res.json()),
+    ]).then(([collections, items]) => {
+      const found = collections.find((c: Collection) => c.id === Number(id));
+      setCollection(found || null);
+      setItems(items);
+      setSelectedItemIds(found ? found.items.map((item) => item.id) : []);
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
 
   if (!collection) {
     return (
@@ -35,7 +51,7 @@ export function AddItemsToCollection() {
     );
   }
 
-  const filteredItems = mockItems.filter((item) => {
+  const filteredItems = items.filter((item) => {
     const matchesCategory =
       selectedCategory === "All" ||
       item.category.toLowerCase() === selectedCategory.toLowerCase() ||
@@ -51,7 +67,7 @@ export function AddItemsToCollection() {
     return matchesCategory && matchesSearch;
   });
 
-  const toggleItem = (itemId: string) => {
+  const toggleItem = (itemId: number) => {
     setSelectedItemIds((prev) =>
       prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
@@ -59,14 +75,29 @@ export function AddItemsToCollection() {
     );
   };
 
-  const handleSave = () => {
-    // In a real app, this would update the collection in the backend
-    console.log("Updating collection items:", selectedItemIds);
-    navigate(`/collections/${id}`);
+  const handleSave = async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`http://localhost:3001/collections/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: collection.name,
+          description: collection.description,
+          color: collection.color,
+          itemIds: selectedItemIds,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update collection");
+      navigate(`/collections/${id}`);
+    } catch (err) {
+      alert("Failed to save collection items.");
+      console.error(err);
+    }
   };
 
   const newlySelectedCount = selectedItemIds.filter(
-    (itemId) => !collection.itemIds.includes(itemId)
+    (itemId) => !collection.items.some((item) => item.id === itemId)
   ).length;
 
   return (

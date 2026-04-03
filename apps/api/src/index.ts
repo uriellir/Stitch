@@ -138,3 +138,30 @@ app.post("/collections", async (req, res) => {
     res.status(500).json({ error: "Failed to create collection" });
   }
 })
+
+// Update a collection's items
+app.put("/collections/:id", async (req, res) => {
+  try {
+    const collectionId = Number(req.params.id);
+    const { name, description, color, itemIds } = req.body;
+    if (!collectionId || !Array.isArray(itemIds)) {
+      return res.status(400).json({ error: "Collection id and itemIds are required" });
+    }
+    const updated = await prisma.collection.update({
+      where: { id: collectionId },
+      data: {
+        name,
+        description,
+        color,
+        items: {
+          set: itemIds.map((id) => ({ id })),
+        },
+      },
+      include: { items: true },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error("PUT /collections/:id failed:", error);
+    res.status(500).json({ error: "Failed to update collection" });
+  }
+});
