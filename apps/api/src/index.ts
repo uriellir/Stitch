@@ -46,6 +46,20 @@ app.get("/clothing-items", async (_req, res) => {
   }
 })
 
+app.delete("/clothing-items/:id", async (req, res) => {
+  try {
+    const itemId = Number(req.params.id);
+    if (!itemId) {
+      return res.status(400).json({ error: "Invalid item id" });
+    }
+    await prisma.clothingItem.delete({ where: { id: itemId } });
+    res.status(204).send();
+  } catch (error) {
+    console.error("DELETE /clothing-items/:id failed:", error);
+    res.status(500).json({ error: "Failed to delete clothing item" });
+  }
+});
+
 app.post("/clothing-items", async (req, res) => {
   try {
     const { name, category, colors, brand, image, favorite } = req.body

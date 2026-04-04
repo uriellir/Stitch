@@ -4,6 +4,7 @@ import { Button } from "../Button";
 import { Chip } from "../Chip";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Modal } from "../ui/Modal";
 import { ClothingItem, Collection } from "../../types/models";
 
 export default function ItemDetails() {
@@ -13,6 +14,8 @@ export default function ItemDetails() {
 	const [collections, setCollections] = useState<Collection[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [deleting, setDeleting] = useState(false);
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -32,6 +35,7 @@ export default function ItemDetails() {
 	}, [id]);
 
 	if (loading) return <div className="p-8 text-center">Loading...</div>;
+	if (deleting) return <div className="p-8 text-center">Deleting item...</div>;
 	if (error || !item) return <div className="p-8 text-center text-red-500">{error || "Item not found"}</div>;
 
 	// Find collections that contain this item
@@ -110,10 +114,40 @@ export default function ItemDetails() {
 							<Edit className="w-4 h-4" />
 							Edit
 						</Button>
-						<Button variant="ghost" onClick={() => navigate("/closet")}> 
+						<Button
+							variant="ghost"
+							onClick={() => setShowDeleteModal(true)}
+						>
 							<Trash2 className="w-4 h-4 text-destructive" />
 							Delete
 						</Button>
+						<Modal
+							open={showDeleteModal}
+							onClose={() => setShowDeleteModal(false)}
+							title="Delete Item"
+							actions={[
+								<Button key="cancel" variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>,
+								<Button
+									key="delete"
+									variant="ghost"
+									onClick={async () => {
+										setShowDeleteModal(false);
+										setDeleting(true);
+										try {
+											await fetch(`http://localhost:3001/clothing-items/${id}`, { method: "DELETE" });
+											navigate("/closet");
+										} catch {
+											setError("Failed to delete item");
+											setDeleting(false);
+										}
+									}}
+								>
+									Delete
+								</Button>
+							]}
+						>
+							Are you sure you want to delete this item? This action cannot be undone.
+						</Modal>
 					</div>
 
 					{/* Build Outfit Around This */}
