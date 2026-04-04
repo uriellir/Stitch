@@ -179,3 +179,25 @@ app.put("/collections/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update collection" });
   }
 });
+
+// Weather endpoint
+app.get("/weather", async (req, res) => {
+  const city = req.query.city;
+  const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "Weather API key not set" });
+  }
+  if (!city) {
+    return res.status(400).json({ error: "City parameter is required" });
+  }
+  try {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(String(city))}&appid=${apiKey}&units=metric`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch weather");
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("GET /weather failed:", error);
+    res.status(500).json({ error: "Failed to fetch weather" });
+  }
+});

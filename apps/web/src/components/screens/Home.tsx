@@ -1,4 +1,5 @@
 import { Plus, Sparkles, Shuffle, Image as ImageIcon, Cloud } from "lucide-react";
+import { fetchWeather } from "../ui/weather";
 import { useNavigate } from "react-router-dom";
 import { ClothingCard } from "../ClothingCard";
 // import { mockItems, mockOutfits } from "../../data/mockData";
@@ -26,6 +27,14 @@ type HomeResponse = {
   }>;
 };
 
+function getGreetingAndMessage(hour: number) {
+  if (hour < 5) return { greeting: "Good night", message: "Burning the midnight oil?" };
+  if (hour < 12) return { greeting: "Good morning", message: "Ready to start your day?" };
+  if (hour < 17) return { greeting: "Good afternoon", message: "Hope your day is going well!" };
+  if (hour < 21) return { greeting: "Good evening", message: "Time to wind down." };
+  return { greeting: "Good night", message: "Rest up for tomorrow!" };
+}
+
 export function Home() {
   const navigate = useNavigate();
   const [data, setData] = useState<HomeResponse | null>(null);
@@ -44,16 +53,44 @@ export function Home() {
       .catch((err) => console.error("Failed to fetch home data:", err));
   }, []);
 
+  const now = new Date();
+  const { greeting, message } = getGreetingAndMessage(now.getHours());
+
+  const [weather, setWeather] = useState<any>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchWeather()
+      .then((data) => {
+        setWeather(data);
+        setWeatherLoading(false);
+      })
+      .catch((err) => {
+        setWeatherError(`Failed to fetch weather, error: ${err.message}`);
+        setWeatherLoading(false);
+      });
+  }, []);
+
   return (
     <div className="bg-background pb-20">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="p-6 pb-4">
-          <h1 className="text-3xl text-foreground mb-1">Good morning</h1>
+          <h1 className="text-3xl text-foreground mb-1">{greeting}</h1>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Cloud className="w-4 h-4" />
-            <p className="text-sm">72°F, Partly cloudy</p>
+            {weatherLoading ? (
+              <p className="text-sm">Loading weather...</p>
+            ) : weatherError ? (
+              <p className="text-sm text-red-500">{weatherError}</p>
+            ) : weather ? (
+              <p className="text-sm">
+                {Math.round(weather.main.temp)}°C, {weather.weather[0].description.replace(/\b\w/g, (c:string) => c.toUpperCase())}
+              </p>
+            ) : null}
           </div>
+          <p className="text-base text-muted-foreground mt-2">{message}</p>
         </div>
 
         {/* Today's Suggestion */}
