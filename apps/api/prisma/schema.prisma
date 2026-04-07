@@ -14,14 +14,27 @@ model User {
 }
 
 model ClothingItem {
-  name     String
-  image    String
-  category String
-  colors   String[]
-  brand    String
-  favorite Boolean  @default(false)
-  id       Int      @id @default(autoincrement())
-  collections Collection[] @relation("CollectionItems")
+  name         String
+  image        String
+  category     String
+  subCategory  String? // e.g. "t-shirt", "jeans", "sneakers" (predefined values)
+  season       String[] // e.g. ["summer", "winter"] (predefined values)
+  warmthLevel  Int?     // e.g. 1-5 (predefined values)
+  occasionTags String[] // e.g. ["casual", "work", "date", "sport", "event", "home"]
+  formality    Int?     // e.g. 1-5 (predefined values)
+  style        String[]  // e.g. ["minimal", "sporty"] (predefined values)
+  pattern      String?  // e.g. "solid", "striped", "plaid" (predefined values)
+  material     String?  // e.g. "cotton", "wool", "polyester" (predefined values)
+  lastWornAt   DateTime?
+  wearCount    Int      @default(0)
+  rating       Int?     // e.g. 1-5
+  temperatureMin Int?   // Minimum comfortable temperature (°C)
+  temperatureMax Int?   // Maximum comfortable temperature (°C)
+  colors       String[]
+  brand        String
+  favorite     Boolean  @default(false)
+  id           Int      @id @default(autoincrement())
+  collections  Collection[] @relation("CollectionItems")
 }
 
 model Collection {

@@ -1,8 +1,12 @@
+import axios from "axios";
 import "dotenv/config";
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from "../generated/prisma/client";
+// import { PrismaClient } from "../generated/prisma/client";
+import { PrismaClient } from "../generated/prisma/client/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
+// import { filterCandidates } from "./filterCandidates";
+import { filterCandidates } from "./filterCandidates.js";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -199,5 +203,82 @@ app.get("/weather", async (req, res) => {
   } catch (error) {
     console.error("GET /weather failed:", error);
     res.status(500).json({ error: "Failed to fetch weather" });
+  }
+});
+
+// Suggest outfit endpoint (MVP)
+app.post("/suggest-outfit", async (req, res) => {
+  try {
+    // 1. Get all wardrobe items from DB
+    const items = await prisma.clothingItem.findMany();
+
+    // 2. Build context from request body (weather, occasion, avoidColors)
+    const context = req.body.context || {};
+
+    // 3. Filter valid candidates using service
+    const candidates = filterCandidates(items, context);
+
+    // 4. If no candidates, return early to avoid unnecessary OpenAI API calls
+    if (!candidates || candidates.length === 0) {
+      return res.status(200).json({ items: [], explanation: "No suitable clothing items found for the given context." });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: "OpenAI API key not set" });
+
+    const systemPrompt = `
+      You are a fashion assistant. 
+      Given a list of clothing items, select the best outfit for today. 
+      Rules:
+      - Select only from the given item IDs.
+      - Respect weather, occasion, and color preferences in the context.
+      - Prefer visually coherent color combinations.
+      - Do not select duplicate items.
+      - Outerwear is optional.
+      - Return the most wearable real-life outfit, not a creative costume.
+      Return a JSON object with an array of item IDs and a short explanation. Schema: { "itemIds": number[], "explanation": string }
+      
+      User Context:
+      ${JSON.stringify(context,null, 2)}`;
+
+    const userPrompt = `Candidate clothing items: ${JSON.stringify(candidates, null, 2)}`;
+    console.log("System Prompt:", systemPrompt);
+    console.log("User Prompt:", userPrompt);
+    const openaiRes = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.7,
+        response_format: { type: "json_object" }
+      },
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+
+    // 5. Validate and type result
+    type OpenAIOutfitResult = {
+      itemIds: number[];
+      explanation: string;
+    };
+    let result: OpenAIOutfitResult;
+    try {
+      const parsed = JSON.parse(openaiRes.data.choices[0].message.content);
+      if (!Array.isArray(parsed.itemIds) || typeof parsed.explanation !== "string") {
+        throw new Error("Invalid schema");
+      }
+      result = parsed as OpenAIOutfitResult;
+    } catch (e) {
+      return res.status(500).json({ error: "Invalid OpenAI response" });
+    }
+
+    // 6. Return outfit + explanation
+    const outfitItems = items.filter(i => result.itemIds.includes(i.id));
+    res.json({ items: outfitItems, explanation: result.explanation });
+  } catch (error) {
+    console.error("POST /suggest-outfit failed:", error);
+    res.status(500).json({ error: "Failed to suggest outfit" });
   }
 });

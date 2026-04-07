@@ -39,19 +39,14 @@ export function Home() {
   const navigate = useNavigate();
   const [data, setData] = useState<HomeResponse | null>(null);
   // const todayOutfit = mockOutfits[0];
-  const todayOutfit = data?.todayOutfit || {
-    id: "outfit1",
-    name: "Today's Outfit",
-    items: data?.recentItems.slice(0, 3) || [],
-  };
+  // Outfit suggestion state
+  const [suggestedOutfit, setSuggestedOutfit] = useState<any>(null);
+  const [suggestionLoading, setSuggestionLoading] = useState(true);
+  const [suggestionError, setSuggestionError] = useState<string | null>(null);
 
 
-  useEffect(() => {
-    fetch("http://localhost:3001/home")
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("Failed to fetch home data:", err));
-  }, []);
+
+
 
   const now = new Date();
   const { greeting, message } = getGreetingAndMessage(now.getHours());
@@ -71,6 +66,52 @@ export function Home() {
         setWeatherLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/home")
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Failed to fetch home data:", err));
+  }, []);
+
+  // Toggle this flag to use cached suggestion or real API
+  const USE_CACHED_SUGGESTION = true; // Set to false to use real API
+
+  useEffect(() => {
+    if (USE_CACHED_SUGGESTION) {
+      import("./outfitSuggestionCache.json")
+        .then((json) => {
+          setSuggestedOutfit(json.default || json);
+          setSuggestionLoading(false);
+        })
+        .catch(() => {
+          setSuggestionError("Failed to load cached outfit suggestion");
+          setSuggestionLoading(false);
+        });
+      return;
+    }
+    if (!weather || weatherLoading || weatherError) return;
+    fetch("http://localhost:3001/suggest-outfit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        context: {
+          weather: { tempC: Math.round(15) }, // weather.main.temp
+          occasion: "casual",
+          avoidColors: ["red"]
+        }
+      })
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        setSuggestedOutfit(json);
+        setSuggestionLoading(false);
+      })
+      .catch(() => {
+        setSuggestionError("Failed to get outfit suggestion");
+        setSuggestionLoading(false);
+      });
+  }, [weather, weatherLoading, weatherError]);
 
   return (
     <div className="bg-background pb-20">
@@ -105,25 +146,34 @@ export function Home() {
               <Sparkles className="w-5 h-5" />
               <h2 className="text-lg">Today's Suggestion</h2>
             </div>
-            <p className="text-sm opacity-90 mb-4">Based on weather and your Monday rules</p>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {todayOutfit.items.slice(0, 3).map((item) => (
-                <div key={item.id} className="flex-shrink-0 w-20">
-                  <div className="aspect-square rounded-xl overflow-hidden bg-white/10 border border-white/20">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
+            {suggestionLoading ? (
+              <p className="text-sm">Loading outfit suggestion...</p>
+            ) : suggestionError ? (
+              <p className="text-sm text-red-500">{suggestionError}</p>
+            ) : suggestedOutfit ? (
+              <>
+                <p className="text-sm opacity-90 mb-4">{suggestedOutfit.explanation}</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {suggestedOutfit.outfit?.slice(0, 3).map((item: any) => (
+                    <div key={item.id} className="flex-shrink-0 w-20">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-white/10 border border-white/20">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <button
-              onClick={() => {
-                localStorage.setItem("outfitResult", JSON.stringify(todayOutfit));
-                navigate("/outfit/result", { state: { outfit: todayOutfit } });
-              }}
-              className="mt-4 bg-white text-primary px-4 py-2 rounded-xl text-sm hover:bg-white/90 transition w-full"
-            >
-              View Full Outfit
-            </button>
+
+                <button
+                  onClick={() => {
+                    localStorage.setItem("outfitResult", JSON.stringify(suggestedOutfit.outfit));
+                    navigate("/outfit/result", { state: { outfit: suggestedOutfit.outfit } });
+                  }}
+                  className="mt-4 bg-white text-primary px-4 py-2 rounded-xl text-sm hover:bg-white/90 transition w-full"
+                >
+                  View Full Outfit
+                </button>
+              </>
+            ) : null}
           </div>
         </motion.div>
 
@@ -194,7 +244,6 @@ export function Home() {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {/* {mockItems.slice(0, 6).map((item) => ( */}
             {data?.recentItems.slice(0, 6).map((item) => (
               <ClothingCard
                 key={item.id}

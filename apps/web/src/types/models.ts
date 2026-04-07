@@ -1,3 +1,7 @@
+export type NormalizedOutfit = {
+  items: ClothingItem[];
+  explanation?: string;
+};
 export type ClothingItem = {
   id: number;
   name: string;

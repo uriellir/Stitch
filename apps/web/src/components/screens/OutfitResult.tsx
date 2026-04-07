@@ -4,37 +4,36 @@ import { Button } from "../Button";
 import { Chip } from "../Chip";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ClothingItem } from "../../types/models";
 
 export default function OutfitResult() {
-
-    type Outfit = {
-        id: string | number;
-        name: string;
-        items: ClothingItem[];
-    };
   const navigate = useNavigate();
   const location = useLocation();
-  const [outfit, setOutfit] = useState<Outfit| null>(location.state?.outfit || null);
+  const [outfit, setOutfit] = useState<any[]>(() => {
+    if (location.state?.outfit && Array.isArray(location.state.outfit)) {
+      return location.state.outfit;
+    }
+    return [];
+  });
 
   useEffect(() => {
-    if (!outfit) {
+    if (!outfit.length) {
       const stored = localStorage.getItem("outfitResult");
       if (stored) {
         try {
-          const parsed: Outfit = JSON.parse(stored);
-          setOutfit(parsed);
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setOutfit(parsed);
+          }
         } catch {}
       }
     }
-  }, [outfit]);
+  }, [outfit.length]);
 
-  if (!outfit) return null;
+  if (!outfit.length) return null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header
-        title="Your Outfit"
+      <Header        title="Your Outfit"
         showBack={true}
         action={
           <button className="p-2 hover:bg-accent rounded-lg">
@@ -49,7 +48,7 @@ export default function OutfitResult() {
             <div className="max-w-sm mx-auto">
               {/* Avatar-style outfit composition */}
               <div className="space-y-4">
-                {outfit.items.map((item) => (
+                {outfit.map((item) => (
                   <div
                     key={item.id}
                     className="bg-white rounded-2xl p-4 border border-border shadow-sm"
@@ -62,7 +61,7 @@ export default function OutfitResult() {
                         <p className="text-sm text-foreground mb-1">{item.name}</p>
                         <p className="text-xs text-muted-foreground capitalize">{item.category}</p>
                         <div className="flex gap-1 mt-2">
-                          {item.colors?.slice(0, 2).map((color, idx) => (
+                          {item.colors?.slice(0, 2).map((color: string, idx: number) => (
                             <span
                               key={idx}
                               className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground capitalize"
